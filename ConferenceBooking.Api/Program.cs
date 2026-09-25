@@ -1,3 +1,4 @@
+using ConferenceBooking.DataAccess.Configurations;
 using ConferenceBooking.Validation;
 using FluentValidation;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
@@ -7,8 +8,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+
 builder.Services.AddValidatorsFromAssemblyContaining<CreateRoomValidator>();
 builder.Services.AddFluentValidationAutoValidation();
+
+builder.Services.AddDatabase(builder.Configuration);
 
 var app = builder.Build();
 
