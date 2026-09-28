@@ -2,6 +2,7 @@ using ConferenceBooking.Application.DTOs.Rooms;
 using ConferenceBooking.Application.Exceptions;
 using ConferenceBooking.Application.Interfaces.Repositories;
 using ConferenceBooking.Application.Interfaces.Services;
+using ConferenceBooking.Application.Mapping;
 using ConferenceBooking.Domain.Entities;
 using RoomServiceEntity = ConferenceBooking.Domain.Entities.RoomService;
 
@@ -24,22 +25,8 @@ public class RoomService : IRoomService
             .Select(service => service.AdditionalServiceId)
             .ToArray();
 
-        if (serviceIds.Length > 0)
-        {
-            var existingIds = await _additionalServiceRepository.GetExistingIdsAsync(
-                serviceIds,
-                cancellationToken);
+        await ValidateServiceIdsAsync(serviceIds, cancellationToken);
 
-            var missingIds = serviceIds
-                .Except(existingIds)
-                .ToArray();
-
-            if (missingIds.Length > 0)
-            {
-                throw new NotFoundException($"Additional services not found: {string.Join(", ", missingIds)}");
-            }
-        }
-        
         var roomId = Guid.NewGuid();
 
         var room = new Room
@@ -62,5 +49,62 @@ public class RoomService : IRoomService
         await _roomRepository.AddAsync(room, cancellationToken);
 
         return room.Id;
+    }
+
+    public async Task<RoomDto> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var room = await _roomRepository.GetByIdAsync(id, cancellationToken);
+
+        if (room is null)
+        {
+            throw new NotFoundException(
+                $"Room with ID '{id}' was not found");
+        }
+
+        return room.ToDto();
+    }
+
+    public async Task UpdateAsync(Guid id, UpdateRoomDto dto, CancellationToken cancellationToken = default)
+    {
+        var serviceIds = dto.Services
+            .Select(service => service.AdditionalServiceId)
+            .ToArray();
+        
+        await ValidateServiceIdsAsync(serviceIds, cancellationToken);
+
+        var updated = await _roomRepository.UpdateAsync(
+            id,
+            dto,
+            cancellationToken);
+
+        if (!updated)
+        {
+            throw new NotFoundException(
+                $"Room with ID '{id}' was not found.");
+        }
+    }
+
+    private async Task ValidateServiceIdsAsync(
+        IReadOnlyCollection<Guid> serviceIds,
+        CancellationToken cancellationToken)
+    {
+        if (serviceIds.Count == 0)
+        {
+            return;
+        }
+
+        var existingIds = await _additionalServiceRepository.GetExistingIdsAsync(
+            serviceIds,
+            cancellationToken);
+
+        var missingIds = serviceIds
+            .Except(existingIds)
+            .ToArray();
+
+        if (missingIds.Length > 0)
+        {
+            throw new NotFoundException(
+                $"Additional services not found: {string.Join(", ", missingIds)}");
+        }
     }
 }

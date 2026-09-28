@@ -17,7 +17,9 @@ public class CreateRoomValidator : AbstractValidator<CreateRoomRequest>
 
         RuleFor(x => x.HourlyRate)
             .GreaterThan(0)
-            .WithMessage("Room hourly rate must be greater than 0");
+            .WithMessage("Room hourly rate must be greater than 0")
+            .PrecisionScale(18, 2, true)
+            .WithMessage("Price must have at most 16 integer digits and 2 decimal places.");
 
         RuleFor(x => x.Services)
             .NotNull()

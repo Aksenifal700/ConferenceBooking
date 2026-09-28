@@ -13,6 +13,8 @@ public class CreateRoomServiceValidator : AbstractValidator<CreateRoomServiceReq
 
         RuleFor(x => x.Price)
             .GreaterThanOrEqualTo(0)
-            .WithMessage("Service price must not be negative");
+            .WithMessage("Service price must not be negative")
+            .PrecisionScale(18, 2, true)
+            .WithMessage("Price must have at most 16 integer digits and 2 decimal places.");
     }
 }
