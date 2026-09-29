@@ -8,4 +8,5 @@ public interface IRoomRepository
     Task AddAsync(Room room, CancellationToken cancellationToken = default);
     Task<Room?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<bool> UpdateAsync(Guid id, UpdateRoomDto dto,CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<Room>> GetAvailableAsync(DateTimeOffset startsAt, DateTimeOffset endsAt, int capacity, CancellationToken cancellationToken = default);
 }

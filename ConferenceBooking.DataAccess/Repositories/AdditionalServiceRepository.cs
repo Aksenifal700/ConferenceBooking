@@ -1,5 +1,6 @@
 using ConferenceBooking.Application.Interfaces.Repositories;
 using ConferenceBooking.DataAccess.Database;
+using ConferenceBooking.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace ConferenceBooking.DataAccess.Repositories;

@@ -16,6 +16,12 @@ public class AppDbContext : DbContext
     
     public DbSet<RoomService> RoomServices { get; set; }
     
+    public DbSet<Booking> Bookings { get; set; }
+
+    public DbSet<BookingService> BookingServices { get; set; }
+
+    public DbSet<BookingPriceSegment> BookingPriceSegments { get; set; }
+    
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

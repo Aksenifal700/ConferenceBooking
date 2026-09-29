@@ -10,6 +10,8 @@ public static class ServiceCollectionConfiguration
     {
         services.AddScoped<IAdditionalServiceRepository, AdditionalServiceRepository>();
         services.AddScoped<IRoomRepository, RoomRepository>();
+        services.AddScoped<IBookingRepository, BookingRepository>();
+        
         return services;
     }
 }

@@ -84,6 +84,20 @@ public class RoomService : IRoomService
         }
     }
 
+    public async Task<IReadOnlyList<RoomDto>> GetAvailableAsync(DateTimeOffset startsAt, DateTimeOffset endsAt, int capacity,
+        CancellationToken cancellationToken = default)
+    {
+        var rooms = await _roomRepository.GetAvailableAsync(
+            startsAt, 
+            endsAt,
+            capacity, 
+            cancellationToken);
+        
+        return rooms
+            .Select(room => room.ToDto())
+            .ToList();
+    }
+
     private async Task ValidateServiceIdsAsync(
         IReadOnlyCollection<Guid> serviceIds,
         CancellationToken cancellationToken)
@@ -107,4 +121,5 @@ public class RoomService : IRoomService
                 $"Additional services not found: {string.Join(", ", missingIds)}");
         }
     }
+    
 }

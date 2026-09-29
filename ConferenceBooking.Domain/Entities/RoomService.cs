@@ -6,4 +6,6 @@ public class RoomService
 
     public Guid RoomId { get; set; }
     public Guid AdditionalServiceId { get; set; }
+    
+    public AdditionalService AdditionalService { get; set; } = null!;
 }

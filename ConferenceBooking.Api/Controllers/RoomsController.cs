@@ -51,4 +51,21 @@ public class RoomsController : ControllerBase
         
         return NoContent();
     }
+
+    [HttpGet("available")]
+    public async Task<ActionResult<List<RoomResponse>>> GetAvailableRooms([FromQuery] SearchAvailableRoomsRequest request,
+        CancellationToken cancellationToken)
+    {
+        var rooms = await _roomService.GetAvailableAsync(
+            request.StartsAt,
+            request.EndsAt,
+            request.Capacity,
+            cancellationToken);
+        
+        var response = rooms
+            .Select(room => room.ToResponse())
+            .ToList();
+        
+        return Ok(response);
+    }
 }

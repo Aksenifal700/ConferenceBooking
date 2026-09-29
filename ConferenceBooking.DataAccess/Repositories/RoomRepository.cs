@@ -27,6 +27,7 @@ public class RoomRepository : IRoomRepository
         return await _context.Rooms
             .AsNoTracking()
             .Include(room => room.Services)
+            .ThenInclude(service => service.AdditionalService)
             .FirstOrDefaultAsync(room => room.Id == id && !room.IsArchived,
                 cancellationToken);
     }
@@ -82,5 +83,26 @@ public class RoomRepository : IRoomRepository
         await _context.SaveChangesAsync(cancellationToken);
 
         return true;
+    }
+
+    public async Task<IReadOnlyList<Room>> GetAvailableAsync(DateTimeOffset startsAt, DateTimeOffset endsAt,
+        int capacity, CancellationToken cancellationToken = default)
+    {
+        var startsAtUtc = startsAt.ToUniversalTime();
+        var endsAtUtc = endsAt.ToUniversalTime();
+        
+        return await _context.Rooms
+            .AsNoTracking()
+            .Where(room =>
+                !room.IsArchived &&
+                room.Capacity >= capacity &&
+                !_context.Bookings.Any(booking =>
+                    booking.RoomId == room.Id &&
+                    booking.StartsAt < endsAtUtc &&
+                    booking.EndsAt > startsAtUtc))
+            .Include(room => room.Services)
+            .OrderBy(room => room.Capacity)
+            .ThenBy(room => room.Id)
+            .ToListAsync(cancellationToken);
     }
 }

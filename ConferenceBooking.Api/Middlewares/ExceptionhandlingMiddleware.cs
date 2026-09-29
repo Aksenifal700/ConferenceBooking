@@ -77,6 +77,7 @@ public class ExceptionHandlingMiddleware
         return exception switch
         {
             NotFoundException => HttpStatusCode.NotFound,
+            ConflictException => HttpStatusCode.Conflict,
             _ => HttpStatusCode.InternalServerError
         };
     }
