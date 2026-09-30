@@ -1,4 +1,3 @@
-using ConferenceBooking.Application.Exceptions;
 using ConferenceBooking.Application.Interfaces.Repositories;
 using ConferenceBooking.DataAccess.Database;
 using ConferenceBooking.Domain.Entities;
@@ -29,23 +28,39 @@ public class BookingRepository : IBookingRepository
             cancellationToken);
     }
 
-    public async Task AddAsync(Booking booking, CancellationToken cancellationToken)
+    public async Task<AddBookingResult> AddAsync(
+        Booking booking,
+        CancellationToken cancellationToken)
     {
+        await using var transaction =
+            await _context.Database.BeginTransactionAsync(cancellationToken);
+
+        // Serialize booking creation with archiving for this room.
+        var room = await _context.Rooms
+            .FromSqlInterpolated(
+                $"SELECT * FROM \"Rooms\" WHERE \"Id\" = {booking.RoomId} FOR UPDATE")
+            .AsNoTracking()
+            .SingleOrDefaultAsync(cancellationToken);
+
+        if (room is null || room.IsArchived)
+        {
+            return AddBookingResult.RoomUnavailable;
+        }
+
         _context.Bookings.Add(booking);
 
         try
         {
             await _context.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+            return AddBookingResult.Created;
         }
         catch (DbUpdateException exception)
             when (exception.InnerException is PostgresException postgresException
-                  && postgresException.SqlState
-                  == PostgresErrorCodes.ExclusionViolation
-                  && postgresException.ConstraintName
-                  == "EX_Bookings_RoomId_TimeRange")
+                  && postgresException.SqlState == PostgresErrorCodes.ExclusionViolation
+                  && postgresException.ConstraintName == "EX_Bookings_RoomId_TimeRange")
         {
-            throw new ConflictException("The room is already booked for the selected time.",
-                exception);
+            return AddBookingResult.Overlap;
         }
     }
 }

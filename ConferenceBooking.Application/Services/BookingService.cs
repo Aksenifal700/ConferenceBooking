@@ -70,6 +70,12 @@ public class BookingService : IBookingService
             2,
             MidpointRounding.AwayFromZero);
 
+        if (totalPrice > 9999999999999999.99m)
+        {
+            throw new BadRequestException(
+                "The booking total exceeds the supported amount.");
+        }
+
         var booking = new Booking
         {
             Id = bookingId,
@@ -83,9 +89,19 @@ public class BookingService : IBookingService
             PriceSegments = segments
         };
 
-        await _bookingRepository.AddAsync(
+        var result = await _bookingRepository.AddAsync(
             booking,
             cancellationToken);
+
+        if (result == AddBookingResult.RoomUnavailable)
+        {
+            throw new NotFoundException("Room was not found.");
+        }
+
+        if (result == AddBookingResult.Overlap)
+        {
+            throw new ConflictException("The room is already booked for the selected time.");
+        }
 
         return booking.ToDto();
     }

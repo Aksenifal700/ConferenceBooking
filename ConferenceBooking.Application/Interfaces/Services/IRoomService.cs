@@ -8,4 +8,5 @@ public interface IRoomService
     Task<RoomDto> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task UpdateAsync(Guid id, UpdateRoomDto dto, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<RoomDto>> GetAvailableAsync(DateTimeOffset startsAt, DateTimeOffset endsAt, int capacity, CancellationToken cancellationToken = default);
+    Task ArchiveAsync(Guid id, CancellationToken cancellationToken = default);
 }

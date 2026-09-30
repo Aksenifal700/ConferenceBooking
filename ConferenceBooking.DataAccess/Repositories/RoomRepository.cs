@@ -18,7 +18,7 @@ public class RoomRepository : IRoomRepository
     public async Task AddAsync(Room room, CancellationToken cancellationToken = default)
     {
         _context.Rooms.Add(room);
-        
+
         await _context.SaveChangesAsync(cancellationToken);
     }
 
@@ -90,7 +90,7 @@ public class RoomRepository : IRoomRepository
     {
         var startsAtUtc = startsAt.ToUniversalTime();
         var endsAtUtc = endsAt.ToUniversalTime();
-        
+
         return await _context.Rooms
             .AsNoTracking()
             .Where(room =>
@@ -104,5 +104,41 @@ public class RoomRepository : IRoomRepository
             .OrderBy(room => room.Capacity)
             .ThenBy(room => room.Id)
             .ToListAsync(cancellationToken);
+    }
+
+    public async Task<ArchiveRoomResult> ArchiveAsync(
+        Guid id,
+        DateTimeOffset now,
+        CancellationToken cancellationToken = default)
+    {
+        await using var transaction =
+            await _context.Database.BeginTransactionAsync(cancellationToken);
+
+        // Booking creation locks the same room until its transaction completes.
+        var room = await _context.Rooms
+            .FromSqlInterpolated(
+                $"SELECT * FROM \"Rooms\" WHERE \"Id\" = {id} FOR UPDATE")
+            .SingleOrDefaultAsync(cancellationToken);
+
+        if (room is null || room.IsArchived)
+        {
+            return ArchiveRoomResult.NotFound;
+        }
+
+        var hasActiveBookings = await _context.Bookings.AnyAsync(
+            booking => booking.RoomId == id && booking.EndsAt > now,
+            cancellationToken);
+
+        if (hasActiveBookings)
+        {
+            return ArchiveRoomResult.HasActiveBookings;
+        }
+
+        room.IsArchived = true;
+
+        await _context.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+
+        return ArchiveRoomResult.Archived;
     }
 }

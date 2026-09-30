@@ -45,7 +45,7 @@ public class RoomService : IRoomService
                 })
                 .ToList()
         };
-        
+
         await _roomRepository.AddAsync(room, cancellationToken);
 
         return room.Id;
@@ -69,7 +69,7 @@ public class RoomService : IRoomService
         var serviceIds = dto.Services
             .Select(service => service.AdditionalServiceId)
             .ToArray();
-        
+
         await ValidateServiceIdsAsync(serviceIds, cancellationToken);
 
         var updated = await _roomRepository.UpdateAsync(
@@ -88,11 +88,11 @@ public class RoomService : IRoomService
         CancellationToken cancellationToken = default)
     {
         var rooms = await _roomRepository.GetAvailableAsync(
-            startsAt, 
+            startsAt,
             endsAt,
-            capacity, 
+            capacity,
             cancellationToken);
-        
+
         return rooms
             .Select(room => room.ToDto())
             .ToList();
@@ -122,4 +122,25 @@ public class RoomService : IRoomService
         }
     }
     
+    public async Task ArchiveAsync(
+        Guid id,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await _roomRepository.ArchiveAsync(
+            id,
+            DateTimeOffset.UtcNow,
+            cancellationToken);
+
+        if (result == ArchiveRoomResult.NotFound)
+        {
+            throw new NotFoundException(
+                $"Room with ID '{id}' was not found.");
+        }
+
+        if (result == ArchiveRoomResult.HasActiveBookings)
+        {
+            throw new ConflictException(
+                "The room has current or upcoming bookings.");
+        }
+    }
 }

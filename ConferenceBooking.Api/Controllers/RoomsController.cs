@@ -1,8 +1,8 @@
-using ConferenceBooking.Application.DTOs.Rooms;
 using ConferenceBooking.Application.Interfaces.Services;
 using ConferenceBooking.Mapping;
 using ConferenceBooking.Models.Requests.Rooms;
 using ConferenceBooking.Models.Response;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ConferenceBooking.Controllers;
@@ -19,6 +19,7 @@ public class RoomsController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize]
     public async Task<IActionResult> CreateRoom([FromBody] CreateRoomRequest request,
         CancellationToken cancellationToken)
     {
@@ -42,13 +43,14 @@ public class RoomsController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [Authorize]
     public async Task<IActionResult> UpdateRoom(Guid id, [FromBody] UpdateRoomRequest request,
         CancellationToken cancellationToken)
     {
         var dto = request.ToDto();
-        
+
         await _roomService.UpdateAsync(id, dto, cancellationToken);
-        
+
         return NoContent();
     }
 
@@ -61,11 +63,22 @@ public class RoomsController : ControllerBase
             request.EndsAt,
             request.Capacity,
             cancellationToken);
-        
+
         var response = rooms
             .Select(room => room.ToResponse())
             .ToList();
-        
+
         return Ok(response);
+    }
+
+    [HttpDelete("{id:guid}")]
+    [Authorize]
+    public async Task<IActionResult> DeleteRoom(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        await _roomService.ArchiveAsync(id, cancellationToken);
+
+        return NoContent();
     }
 }
