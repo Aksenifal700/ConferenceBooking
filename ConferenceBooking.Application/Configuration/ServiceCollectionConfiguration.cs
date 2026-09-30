@@ -11,8 +11,9 @@ public static class ServiceCollectionConfiguration
     {
         services.AddScoped<IRoomService, RoomService>();
         services.AddScoped<IBookingService, BookingService>();
+        services.AddScoped<IReportService, ReportService>();
         services.AddScoped<BookingPriceCalculator>();
-        
+
         return services;
     }
 }
