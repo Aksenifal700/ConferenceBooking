@@ -14,7 +14,7 @@ public class AdditionalServiceConfiguration : IEntityTypeConfiguration<Additiona
 
         builder.Property(service => service.Name)
             .IsRequired();
-        
+
         builder.HasData(
             new AdditionalService
             {
