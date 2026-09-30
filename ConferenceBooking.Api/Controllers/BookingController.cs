@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using System.Security.Cryptography;
 using ConferenceBooking.Application.Interfaces.Services;
 using ConferenceBooking.Mapping;
 using ConferenceBooking.Models.Requests.Booking;
@@ -12,7 +11,7 @@ namespace ConferenceBooking.Controllers;
 [ApiController]
 [Authorize]
 [Route("api/bookings")]
-public class BookingController : ControllerBase 
+public class BookingController : ControllerBase
 {
     private readonly IBookingService _bookingService;
 
@@ -25,20 +24,16 @@ public class BookingController : ControllerBase
     public async Task<ActionResult<BookingResponse>> CreateBooking([FromBody] CreateBookingRequest request,
         CancellationToken cancellationToken)
     {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        // JwtConfiguration validates this claim before an authorized action runs.
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-        if (!Guid.TryParse(userIdClaim, out var userId) || userId == Guid.Empty)
-        {
-            return Unauthorized();
-        }
-        
         var booking = await _bookingService.CreateAsync(
             request.ToDto(),
             userId,
             cancellationToken);
-        
+
         return StatusCode(StatusCodes.Status201Created,
             booking.ToResponse());
     }
-    
+
 }

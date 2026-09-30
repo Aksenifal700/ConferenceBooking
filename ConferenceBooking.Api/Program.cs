@@ -1,3 +1,4 @@
+using ConferenceBooking.Configuration;
 using ConferenceBooking.Application.Configuration;
 using ConferenceBooking.DataAccess.Configurations;
 using ConferenceBooking.Middlewares;
@@ -9,12 +10,14 @@ var builder = WebApplication.CreateBuilder(args);
 
 
 builder.Services.AddControllers();
-builder.Services.AddOpenApi();
+builder.Services.AddSwaggerConfiguration();
 
 builder.Services.AddValidatorsFromAssemblyContaining<CreateRoomValidator>();
 builder.Services.AddFluentValidationAutoValidation();
 
 builder.Services.AddDatabase(builder.Configuration);
+builder.Services.AddIdentityConfiguration();
+builder.Services.AddJwtConfiguration(builder.Configuration);
 builder.Services.AddRepositories();
 builder.Services.AddServices();
 
@@ -22,20 +25,11 @@ var app = builder.Build();
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-    
-    app.UseSwaggerUI(options =>
-    {
-        options.SwaggerEndpoint(
-            "/openapi/v1.json",
-            "Conference Booking API");
-    });
-}
+app.UseSwaggerConfiguration();
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

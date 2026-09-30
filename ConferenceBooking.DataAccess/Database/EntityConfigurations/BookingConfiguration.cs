@@ -1,3 +1,4 @@
+using ConferenceBooking.DataAccess.Identity;
 using ConferenceBooking.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -49,6 +50,11 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
         builder.HasOne<Room>()
             .WithMany()
             .HasForeignKey(booking => booking.RoomId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne<ApplicationUser>()
+            .WithMany()
+            .HasForeignKey(booking => booking.UserId)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasIndex(booking => booking.UserId);

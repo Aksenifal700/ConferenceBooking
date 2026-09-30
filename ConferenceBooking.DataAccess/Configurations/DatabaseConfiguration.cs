@@ -1,5 +1,4 @@
 using ConferenceBooking.DataAccess.Database;
-using ConferenceBooking.DataAccess.Database.EntityConfigurations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

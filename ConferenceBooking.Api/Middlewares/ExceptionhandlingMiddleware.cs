@@ -59,7 +59,6 @@ public class ExceptionHandlingMiddleware
         else
         {
             _logger.LogWarning(
-                exception,
                 "Request failed: {Message}",
                 exception.Message);
         }
@@ -78,6 +77,8 @@ public class ExceptionHandlingMiddleware
         {
             NotFoundException => HttpStatusCode.NotFound,
             ConflictException => HttpStatusCode.Conflict,
+            BadRequestException => HttpStatusCode.BadRequest,
+            InvalidCredentialsException => HttpStatusCode.Unauthorized,
             _ => HttpStatusCode.InternalServerError
         };
     }
