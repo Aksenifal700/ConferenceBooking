@@ -1,3 +1,4 @@
+using ConferenceBooking.Domain.Pricing;
 using ConferenceBooking.Models.Requests.Rooms;
 using FluentValidation;
 
@@ -25,20 +26,8 @@ public class SearchAvailableRoomsValidator : AbstractValidator<SearchAvailableRo
             .GreaterThan(request => request.StartsAt)
             .WithMessage("End time must be after start time.")
             .Must((request, endsAt) =>
-                IsWithinOpeningHours(request.StartsAt, endsAt))
+                BookingTimeRules.IsWithinOpeningHours(request.StartsAt, endsAt))
             .WithMessage(
                 "The interval must be within 06:00–23:00 UTC on the same day.");
-    }
-
-    private static bool IsWithinOpeningHours(
-        DateTimeOffset startsAt,
-        DateTimeOffset endsAt)
-    {
-        var startUtc = startsAt.ToUniversalTime();
-        var endUtc = endsAt.ToUniversalTime();
-
-        return startUtc.Date == endUtc.Date
-               && startUtc.TimeOfDay >= TimeSpan.FromHours(6)
-               && endUtc.TimeOfDay <= TimeSpan.FromHours(23);
     }
 }

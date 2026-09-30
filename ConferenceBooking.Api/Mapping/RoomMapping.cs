@@ -29,7 +29,7 @@ public static class RoomMapping
             Price = request.Price
         };
     }
-    
+
     public static RoomResponse ToResponse(this RoomDto dto)
     {
         return new RoomResponse
@@ -52,7 +52,7 @@ public static class RoomMapping
             Price = dto.Price
         };
     }
-    
+
     public static UpdateRoomDto ToDto(this UpdateRoomRequest request)
     {
         return new UpdateRoomDto

@@ -1,5 +1,4 @@
 using ConferenceBooking.Application.DTOs.RoomService;
-using ConferenceBooking.Domain.Entities;
 
 namespace ConferenceBooking.Application.DTOs.Rooms;
 

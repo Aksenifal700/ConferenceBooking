@@ -12,26 +12,16 @@ public class BookingPriceCalculator
         startsAt = startsAt.ToUniversalTime();
         endsAt = endsAt.ToUniversalTime();
 
-        if (endsAt <= startsAt)
+        // Keep direct calls safe: an invalid interval can prevent the loop from advancing.
+        if (!BookingTimeRules.IsWithinOpeningHours(startsAt, endsAt))
         {
             throw new ArgumentException(
-                "Booking end must be after its start.");
+                "Booking must have a positive duration within 06:00–23:00 UTC on the same day.");
         }
 
         if (hourlyRate <= 0)
         {
             throw new ArgumentOutOfRangeException(nameof(hourlyRate));
-        }
-
-        var openingTime = new TimeSpan(6, 0, 0);
-        var closingTime = new TimeSpan(23, 0, 0);
-
-        if (startsAt.Date != endsAt.Date ||
-            startsAt.TimeOfDay < openingTime ||
-            endsAt.TimeOfDay > closingTime)
-        {
-            throw new ArgumentException(
-                "Booking must be within 06:00–23:00 UTC on the same day.");
         }
 
         var segments = new List<BookingPriceSegment>();
@@ -58,7 +48,7 @@ public class BookingPriceCalculator
             var durationHours =
                 (decimal)(segmentEnd - currentStart).Ticks
                 / TimeSpan.TicksPerHour;
- 
+
             segments.Add(new BookingPriceSegment
             {
                 Id = Guid.NewGuid(),

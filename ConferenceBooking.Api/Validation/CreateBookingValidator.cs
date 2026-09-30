@@ -1,3 +1,4 @@
+using ConferenceBooking.Domain.Pricing;
 using ConferenceBooking.Models.Requests.Booking;
 using FluentValidation;
 
@@ -25,7 +26,7 @@ public class CreateBookingValidator : AbstractValidator<CreateBookingRequest>
             .GreaterThan(request => request.StartsAt)
             .WithMessage("Booking end must be after its start.")
             .Must((request, endsAt) =>
-                IsWithinOpeningHours(request.StartsAt, endsAt))
+                BookingTimeRules.IsWithinOpeningHours(request.StartsAt, endsAt))
             .WithMessage(
                 "Booking must be within 06:00–23:00 UTC on the same day.");
 
@@ -43,17 +44,5 @@ public class CreateBookingValidator : AbstractValidator<CreateBookingRequest>
                 .Must(ids => ids.Distinct().Count() == ids.Count)
                 .WithMessage("The same service cannot be selected twice.");
         });
-    }
-
-    private static bool IsWithinOpeningHours(
-        DateTimeOffset startsAt,
-        DateTimeOffset endsAt)
-    {
-        var startUtc = startsAt.ToUniversalTime();
-        var endUtc = endsAt.ToUniversalTime();
-
-        return startUtc.Date == endUtc.Date
-               && startUtc.TimeOfDay >= TimeSpan.FromHours(6)
-               && endUtc.TimeOfDay <= TimeSpan.FromHours(23);
     }
 }

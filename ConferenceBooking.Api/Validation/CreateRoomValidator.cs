@@ -21,30 +21,9 @@ public class CreateRoomValidator : AbstractValidator<CreateRoomRequest>
             .PrecisionScale(18, 2, true)
             .WithMessage("Price must have at most 16 integer digits and 2 decimal places.");
 
-        RuleFor(x => x.Services)
+        RuleFor(request => request.Services)
             .NotNull()
-            .WithMessage("Services must not be null");
-
-        When(x => x.Services is not null, () =>
-        {
-            RuleForEach(x => x.Services)
-                .NotNull()
-                .WithMessage("Services must be an array")
-                .SetValidator(new CreateRoomServiceValidator());
-
-            RuleFor(x => x.Services)
-                .Must(HaveUniqueServiceIds)
-                .WithMessage("The same service cannot be added twice");
-        });
-    }
-
-    private static bool HaveUniqueServiceIds(List<CreateRoomServiceRequest> services)
-    {
-        var ids = services
-            .Where(service => service is not null)
-            .Select(service => service.AdditionalServiceId)
-            .ToList();
-
-        return ids.Distinct().Count() == ids.Count;
+            .WithMessage("Services must not be null.")
+            .SetValidator(new RoomServicesValidator());
     }
 }

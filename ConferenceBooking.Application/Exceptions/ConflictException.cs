@@ -9,5 +9,5 @@ public class ConflictException : Exception
     public ConflictException(string message, Exception innerException) : base(message, innerException)
     {
     }
-    
+
 }

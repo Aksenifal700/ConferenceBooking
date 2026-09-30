@@ -12,12 +12,12 @@ public static class BookingMapping
         return new CreateBookingDto
         {
             RoomId = request.RoomId,
-            StartsAt = request.StartsAt.ToUniversalTime(),
-            EndsAt = request.EndsAt.ToUniversalTime(),
+            StartsAt = request.StartsAt,
+            EndsAt = request.EndsAt,
             ServiceIds = request.ServiceIds.ToList()
         };
     }
-    
+
     public static BookingResponse ToResponse(this BookingDto dto)
     {
         return new BookingResponse
