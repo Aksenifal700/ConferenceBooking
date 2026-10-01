@@ -1,6 +1,6 @@
 # Conference Booking API
 
-Backend assessment: manage conference rooms, find availability, book rooms with optional services, and view business reports.
+API for managing conference rooms, checking availability, booking rooms with optional services, and generating business reports.
 
 ## Stack and structure
 
