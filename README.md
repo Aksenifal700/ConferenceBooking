@@ -131,7 +131,7 @@ Booking insertion and archiving lock the same room row in a transaction (FOR UPD
 
 ## Reports
 
-Use from=2026-10-01&to=2026-11-01 for October. Dates are UTC, from inclusive, to exclusive; period length 1–366 days. See [report definitions](docs/reports.md).
+Use from=2026-10-01&to=2026-11-01 for October. Dates are UTC, from inclusive, to exclusive; period length 1–366 days.
 
 Booking totals are not payment receipts. Occupancy is relative to 17 hours per calendar day; the model does not retain room creation/archive timestamps for historical capacity adjustment.
 
@@ -144,7 +144,27 @@ dotnet ef migrations has-pending-model-changes --project ConferenceBooking.DataA
 
 Manual checks: tariff boundaries and services; overlapping bookings (201 + 409); adjacent bookings; invalid request (400); missing room (404); missing token (401); archive with future bookings (409); empty-room archive (204); reports on known totals.
 
-There is currently no automated test project. HTTP checks do not prove all concurrent schedules.
+### Automated tests
+
+Packages are already declared in ConferenceBooking.Tests.csproj; dotnet restore installs them:
+Microsoft.NET.Test.Sdk, xunit, xunit.runner.visualstudio, Moq, Testcontainers.PostgreSql.
+
+Run fast unit tests without Docker:
+
+```powershell
+dotnet test ConferenceBooking.Tests --configuration Release --filter "Category=Unit"
+```
+
+With Docker running, run PostgreSQL integration tests or the entire suite:
+
+```powershell
+dotnet test ConferenceBooking.Tests --configuration Release --filter "Category=Integration"
+dotnet test ConferenceBooking.Tests --configuration Release
+```
+
+Integration tests start a separate postgres:17 container on a dynamically assigned port and apply the real migrations. They never use the application connection string. Testcontainers removes the test container afterward; the first run may download Docker images.
+
+Coverage: tariff boundaries, partial hours, UTC offsets, invalid intervals, rounding, service price snapshots, application errors, concurrent overlap, both archive/booking lock orders, adjacent bookings, preserving history, and database report aggregation. Row-lock gates coordinate competing operations without arbitrary sleeps. These are repository/database integration tests, not full HTTP authentication tests.
 
 RemoveUnusedRoleTables removes the unused AspNetRoles, AspNetRoleClaims and AspNetUserRoles tables. User accounts and bookings are retained. Its rollback recreates empty role tables, not deleted role assignments. Do not remove already-applied migrations or reset the working database to clean migration history. An old development database may retain an entry for the deleted SeedIdentityRoles migration; this entry is not required on a clean install.
 
