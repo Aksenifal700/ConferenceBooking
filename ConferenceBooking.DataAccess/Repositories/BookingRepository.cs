@@ -35,7 +35,9 @@ public class BookingRepository : IBookingRepository
         await using var transaction =
             await _context.Database.BeginTransactionAsync(cancellationToken);
 
-        // Serialize booking creation with archiving for this room.
+        // FOR UPDATE holds the room lock until this transaction ends.
+        // Archiving takes the same lock, so recheck IsArchived after acquiring it:
+        // the room may have been archived since the service first loaded it.
         var room = await _context.Rooms
             .FromSqlInterpolated(
                 $"SELECT * FROM \"Rooms\" WHERE \"Id\" = {booking.RoomId} FOR UPDATE")
@@ -60,6 +62,8 @@ public class BookingRepository : IBookingRepository
                   && postgresException.SqlState == PostgresErrorCodes.ExclusionViolation
                   && postgresException.ConstraintName == "EX_Bookings_RoomId_TimeRange")
         {
+            // The earlier availability check can race with another booking.
+            // Translate only this known database constraint; other database errors propagate.
             return AddBookingResult.Overlap;
         }
     }

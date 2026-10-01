@@ -41,10 +41,14 @@ public class BookingPriceCalculator
                 0,
                 TimeSpan.Zero);
 
+            // Stop at the next tariff boundary or booking end, whichever comes first.
+            // The next iteration prices the remaining time using its own tariff.
             var segmentEnd = endsAt < tariffEnd
                 ? endsAt
                 : tariffEnd;
 
+            // Decimal ticks preserve partial hours, including seconds and milliseconds.
+            // BookingService rounds the final total after adding all segments and services.
             var durationHours =
                 (decimal)(segmentEnd - currentStart).Ticks
                 / TimeSpan.TicksPerHour;

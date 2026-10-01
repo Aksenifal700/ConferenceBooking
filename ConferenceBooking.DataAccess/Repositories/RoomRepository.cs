@@ -114,7 +114,8 @@ public class RoomRepository : IRoomRepository
         await using var transaction =
             await _context.Database.BeginTransactionAsync(cancellationToken);
 
-        // Booking creation locks the same room until its transaction completes.
+        // Use the same row lock as booking creation, keeping it through the check and update.
+        // Otherwise a booking could be inserted after the check but before archiving.
         var room = await _context.Rooms
             .FromSqlInterpolated(
                 $"SELECT * FROM \"Rooms\" WHERE \"Id\" = {id} FOR UPDATE")
@@ -125,6 +126,7 @@ public class RoomRepository : IRoomRepository
             return ArchiveRoomResult.NotFound;
         }
 
+        // EndsAt > now covers both ongoing and future bookings; completed ones stay as history.
         var hasActiveBookings = await _context.Bookings.AnyAsync(
             booking => booking.RoomId == id && booking.EndsAt > now,
             cancellationToken);

@@ -23,6 +23,8 @@ internal sealed class RowLockGate : DbCommandInterceptor
     {
         if (command.CommandText.Contains("FOR UPDATE"))
         {
+            // Signal that the competing operation has reached its locking query.
+            // This does not mean PostgreSQL has granted the lock yet.
             Started.TrySetResult();
         }
         return ValueTask.FromResult(result);
@@ -37,6 +39,8 @@ internal sealed class RowLockGate : DbCommandInterceptor
             Locked.TrySetResult();
             if (_holdAfterLock)
             {
+                // Keep the first transaction open while the test starts the competitor.
+                // Release resumes it; the timeout prevents a broken test from waiting forever.
                 await Release.Task.WaitAsync(TimeSpan.FromSeconds(15), cancellationToken);
             }
         }
